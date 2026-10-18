@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kata Hari Ini</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #fafafa;
+  color: #222;
+  display: flex;
+  justify-content: center;
+  padding: 25px 15px;
+}
+
+.app {
+  width: 100%;
+  max-width: 560px;
+}
+
+header {
+  margin-bottom: 35px;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 25px;
+  letter-spacing: -1px;
+}
+
+header p {
+  font-size: 13px;
+  color: #777;
+  margin-top: 7px;
+}
+
+.controls {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+select,
+button {
+  font: inherit;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 12px;
+  background: white;
+  color: #222;
+}
+
+select {
+  flex: 1;
+  min-width: 0;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:hover {
+  background: #f0f0f0;
+}
+
+.result {
+  background: white;
+  border: 1px solid #e8e8e8;
+  border-radius: 12px;
+  padding: 25px 20px;
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.label {
+  font-size: 11px;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 18px;
+}
+
+#quote {
+  font-size: 23px;
+  line-height: 1.55;
+  font-weight: 600;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.actions button {
+  flex: 1;
+  font-size: 13px;
+}
+
+.generate {
+  background: #222;
+  color: white;
+  border-color: #222;
+}
+
+.generate:hover {
+  background: #444;
+}
+
+.generate:disabled {
+  opacity: .6;
+}
+
+.info {
+  margin-top: 28px;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.7;
+}
+
+footer {
+  margin-top: 40px;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+  font-size: 11px;
+  color: #999;
+}
+
+@media (max-width: 400px) {
+  #quote {
+    font-size: 20px;
+  }
+
+  .controls {
+    flex-wrap: wrap;
+  }
+
+  select {
+    flex-basis: 100%;
+  }
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+<header>
+  <h1>kata hari ini.</h1>
+  <p>Tidak Ada Kata Kata</p>
+</header>
+
+<div class="controls">
+  <select id="mode">
+    <option value="random">Acak semua</option>
+    <option value="bijak">Kata-kata bijak</option>
+    <option value="galau">Kata-kata galau</option>
+  </select>
+
+  <button id="generate">Acak ↻</button>
+</div>
+
+<section class="result">
+  <div class="label" id="label">KALIMAT HARI INI</div>
+  <p id="quote" aria-live="polite">
+    Hidup tidak selalu berjalan sesuai keinginan, tetapi selalu memberi ruang untuk belajar.
+  </p>
+</section>
+
+<div class="actions">
+  <button id="copy">Salin kalimat</button>
+  <button id="next">Kata berikutnya →</button>
+</div>
+
+<div class="info">
+  kadang yang berjuang sampai tersungkur tidak mendapat apa apa,
+  dan kadang yang berjuang sambil tertawa malah mendapatkan semesta
+</div>
+
+<footer>
+  created by Fajar-Dev,
+  IG: zarzxcode,
+  TIK TOK: zarzxcode
+</footer>
+
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+const words = {
+  galau: {
+    subjek: [
+      "rindu", "kenangan", "perasaan", "harapan",
+      "kehilangan", "kesepian", "hati", "perpisahan",
+      "air mata", "masa lalu", "kepercayaan",
+      "kerinduan", "pertemuan", "janji", "cinta",
+      "penantian", "luka lama", "cerita kita",
+      "seseorang", "diam", "senyuman", "perhatian",
+      "keikhlasan", "waktu", "hubungan", "kebersamaan",
+      "pesan yang tak terkirim", "percakapan terakhir",
+      "kenyataan", "rasa kecewa", "hati yang lelah",
+      "impian yang kandas", "perasaan yang terpendam",
+      // --- TAMBAHAN BARU ---
+      "bayangan", "isak tangis", "penyesalan", "suara hati",
+      "Langkah yang tertunda", "pelukan terakhir", "patah hati",
+      "ruang kosong", "malam panjang", "canda tawa", "nama yang kusebut",
+      "rasa yang tertinggal", "lembaran lama", "cinta yang diuji",
+      "janji yang manis", "luka yang tersembunyi", "khayalan semu",
+      "tatapan mata", "langit malam", "derap langkah", "sesak di dada",
+      "cemburu buta", "ego yang tinggi", "pilihan yang sulit",
+      "kata-kata terakhir", "senja yang redup", "cinta sepihak",
+      "tanda tanya besar", "bayang-bayang semu", "repihan asa",
+      "asa yang pupus", "air mata yang jatuh", "rindu yang tertahan"
+    ],
+
+    sifat: [
+      "sunyi", "rapuh", "jauh", "asing", "pahit",
+      "rumit", "singkat", "sementara", "melelahkan",
+      "menyakitkan", "membingungkan", "sederhana",
+      "berharga", "terlupakan", "tidak pasti",
+      "sulit dijelaskan", "susah dilupakan",
+      "tak terbalaskan", "penuh tanda tanya",
+      // --- TAMBAHAN BARU ---
+      "hampa", "kelam", "sendiri", "kelabu", "pilu",
+      "tertutup", "abu-abu", "berduri", "dingin", "membeku",
+      "tertunda", "abu-abu", "penuh dusta", "tak berujung",
+      "rapuh perlahan", "menyesakkan", "penuh luka",
+      "sukar dimengerti", "penuh rahasia", "membias",
+      "hampir nyata", "terlalu cepat", "amat berat",
+      "terluka diam-diam", "hanyut terbawa arus", "terlupakan waktu"
+    ],
+
+    kerja: [
+      "datang tanpa permisi",
+      "pergi tanpa penjelasan",
+      "tinggal dalam ingatan",
+      "berubah seiring waktu",
+      "tidak selalu menemukan jawaban",
+      "mengajarkan arti kehilangan",
+      "menyisakan banyak pertanyaan",
+      "membuat semuanya terasa berbeda",
+      "menjadi bagian dari masa lalu",
+      "sulit untuk benar-benar dilupakan",
+      "tidak selalu berakhir bahagia",
+      "membuat seseorang belajar ikhlas",
+      "hadir hanya untuk sementara",
+      "membuat hati belajar menerima",
+      "tidak lagi sama seperti dahulu",
+      // --- TAMBAHAN BARU ---
+      "menghantui setiap malam sunyi",
+      "berputar kembali dalam kepala",
+      "meninggalkan bekas yang abadi",
+      "membuat dada terasa sesak",
+      "memaksa diri untuk tersenyum palsu",
+      "menguji batas kesabaran hati",
+      "merobohkan pertahanan yang kubangun",
+      "menghapus jejak yang tertinggal",
+      "mengubah tawa menjadi air mata",
+      "menyelinap di balik senyuman",
+      "menghancurkan harapan yang ada",
+      "menguras energi dan pikiran",
+      "menenggelamkan diri dalam lamunan",
+      "membuat langkah terasa berat",
+      "menguji seberapa kuat bertahan",
+      "menghadirkan rasa rindu yang menyiksa",
+      "memecah kepingan hati yang tersisa",
+      "mengaburkan batas antara nyata dan mimpi",
+      "membuat waktu berjalan sangat lambat",
+      "menorehkan luka yang sulit sembuh"
+    ],
+
+    penutup: [
+      "dan akhirnya kita belajar menerima.",
+      "meski hati belum sepenuhnya mengerti.",
+      "tanpa perlu menyalahkan siapa pun.",
+      "karena waktu tidak bisa diputar kembali.",
+      "meski jawabannya tidak pernah datang.",
+      "sebab tidak semua cerita punya akhir bahagia.",
+      "dan hidup tetap harus berjalan.",
+      "meski kenangannya masih terasa dekat.",
+      "karena setiap orang punya jalannya sendiri.",
+      "meski tidak mudah untuk melupakannya.",
+      // --- TAMBAHAN BARU ---
+      "walau air mata terus menetes diam-diam.",
+      "meski rindu ini kian menyiksa.",
+      "karena melupakan butuh proses yang panjang.",
+      "sebab luka adalah bukti pernah sungguh mencinta.",
+      "meski semesta seolah tak berpihak.",
+      "dan kita harus berpura-pura baik-baik saja.",
+      "karena tidak semua hal bisa dipaksakan.",
+      "meski kepingan hati masih berserakan.",
+      "sebab ada hal yang memang harus ikhlas dilepaskan.",
+      "meski bayangmu masih enggan pergi."
+    ]
+  },
+
+  bijak: {
+    subjek: [
+      "kehidupan", "waktu", "kesabaran", "perjuangan",
+      "kegagalan", "kesuksesan", "keberanian",
+      "perubahan", "pengalaman", "pendidikan",
+      "kebiasaan", "kedisiplinan", "kejujuran",
+      "persahabatan", "keluarga", "impian",
+      "masa depan", "kesempatan", "pilihan",
+      "usaha kecil", "pikiran positif", "ketekunan",
+      "tanggung jawab", "pengorbanan", "kepercayaan",
+      "kerendahan hati", "ilmu pengetahuan",
+      "keputusan hari ini", "langkah pertama",
+      "perjalanan panjang", "ketenangan hati",
+      // --- TAMBAHAN BARU ---
+      "konsistensi", "fokus", "integritas", "kreativitas",
+      "rasa syukur", "pengendalian diri", "kebijaksanaan",
+      "visi hidup", "tujuan mulia", "semangat juang",
+      "niat baik", "hati yang tulus", "kebaikan kecil",
+      "kegigihan", "mental baja", "peluang emas",
+      "solusi terbaik", "makna hidup", "kebahagiaan sejati",
+      "ketulusan", "sikap mental", "energi positif",
+      "keseimbangan hidup", "investasi diri", "pembelajaran",
+      "akhlak mulia", "keteguhan", "arah tujuan", "prinsip hidup"
+    ],
+
+    sifat: [
+      "berharga", "berarti", "penting", "bermanfaat",
+      "tidak mudah", "penuh pelajaran", "menantang",
+      "penuh kemungkinan", "layak diperjuangkan",
+      "membutuhkan kesabaran", "membawa perubahan",
+      "tidak selalu mudah", "penuh kesempatan",
+      "terus berkembang", "perlu dijaga",
+      // --- TAMBAHAN BARU ---
+      "luar biasa", "menginspirasi", "penuh makna",
+      "membawa berkah", "sangat menentukan", "membuka wawasan",
+      "butuh ketekunan", "penuh tantangan", "sangat mulia",
+      "membentuk kedewasaan", "penuh hikmah", "membutuhkan waktu",
+      "sangat mendasar", "pasti membuahkan hasil",
+      "memperkaya jiwa", "membawa ketenangan", "sangat krusial"
+    ],
+
+    kerja: [
+      "membentuk karakter seseorang",
+      "membuka jalan menuju perubahan",
+      "membutuhkan proses yang panjang",
+      "mengajarkan kita untuk bertahan",
+      "tidak datang hanya dengan berharap",
+      "tumbuh dari kebiasaan sederhana",
+      "dimulai dari keputusan kecil",
+      "membutuhkan keberanian untuk memulai",
+      "tidak bisa dibangun dalam semalam",
+      "membuat kita semakin dewasa",
+      "mengajarkan arti tanggung jawab",
+      "menjadi bekal untuk masa depan",
+      "membutuhkan usaha yang konsisten",
+      "membantu kita memahami kehidupan",
+      "lebih berarti jika dibagikan",
+      // --- TAMBAHAN BARU ---
+      "menjadi fondasi utama kesuksesan",
+      "mengubah cara pandang terhadap dunia",
+      "membawa hasil yang setimpal",
+      "memperkuat mental menghadapi cobaan",
+      "menghasilkan buah yang manis",
+      "menuntun pada jalan yang benar",
+      "menghidupkan kembali harapan yang padam",
+      "membuang jauh keraguan di dalam hati",
+      "mengarahkan langkah menuju kebaikan",
+      "membangun jembatan menuju impian",
+      "mengikis sifat buruk secara perlahan",
+      "meningkatkan kualitas diri setiap hari",
+      "memberikan ketenangan di tengah badai",
+      "menjadikan rintangan sebagai batu loncatan",
+      "menciptakan peluang dari keterbatasan",
+      "membuka pintu kesempatan baru",
+      "mengubah kegagalan menjadi kemenangan"
+    ],
+
+    penutup: [
+      "jadi jangan berhenti belajar.",
+      "karena setiap proses punya pelajaran.",
+      "mulailah dari apa yang kamu miliki.",
+      "sebab langkah kecil tetap berarti.",
+      "dan jangan takut untuk mencoba.",
+      "selama kamu terus memperbaiki diri.",
+      "tanpa harus membandingkan diri dengan orang lain.",
+      "karena hasil membutuhkan waktu.",
+      "dan kegagalan bukan akhir segalanya.",
+      "sebab masa depan dibangun hari ini.",
+      // --- TAMBAHAN BARU ---
+      "karena kerja keras tidak akan pernah mengkhianati hasil.",
+      "mulailah melangkah dari sekarang.",
+      "sebab hari esok ditentukan oleh pilihanmu hari ini.",
+      "dan percayalah pada proses yang sedang kamu jalani.",
+      "karena ketekunan adalah kunci utama.",
+      "teruslah menebar kebaikan di mana pun berada.",
+      "sebab hidup adalah tentang terus bertumbuh.",
+      "jadikan setiap hambatan sebagai batu loncatan.",
+      "karena sukses adalah milik mereka yang tidak pernah menyerah.",
+      "dan tetaplah rendah hati dalam setiap pencapaian."
+    ]
+  }
+};
+
+const pola = {
+  galau: [
+    w => `Terkadang, ${ambil(w.subjek)} hanya ${ambil(w.kerja)}.`,
+    w => `${kapital(ambil(w.subjek))} memang ${ambil(w.sifat)}, tetapi ${ambil(w.penutup)}`,
+    w => `Tidak semua ${ambil(w.subjek)} harus berakhir sesuai harapan, ${ambil(w.penutup)}`,
+    w => `Aku belajar menerima bahwa ${ambil(w.subjek)} ${ambil(w.kerja)}.`,
+    w => `Yang paling sulit bukan melupakan, melainkan memahami mengapa ${ambil(w.subjek)} ${ambil(w.kerja)}.`,
+    w => `Mungkin ${ambil(w.subjek)} memang ${ambil(w.sifat)}; ${ambil(w.penutup)}`,
+    w => `Ada kalanya kita harus merelakan ${ambil(w.subjek)}, meski ${ambil(w.penutup)}`,
+    w => `${kapital(ambil(w.subjek))} mengajarkan bahwa ${ambil(w.penutup)}`,
+    w => `Kadang kita terlihat baik-baik saja, padahal ${ambil(w.subjek)} ${ambil(w.kerja)}.`,
+    w => `Tidak semua yang pergi harus dibenci, dan tidak semua yang tinggal akan menetap.`
+  ],
+
+  bijak: [
+    w => `${kapital(ambil(w.subjek))} ${ambil(w.kerja)}.`,
+    w => `Jangan meremehkan ${ambil(w.subjek)}, karena hal itu ${ambil(w.kerja)}.`,
+    w => `Dalam hidup, ${ambil(w.subjek)} adalah sesuatu yang ${ambil(w.sifat)}.`,
+    w => `Mulailah menghargai ${ambil(w.subjek)}, sebab ${ambil(w.penutup)}`,
+    w => `Kamu tidak harus sempurna untuk berkembang; ${ambil(w.penutup)}`,
+    w => `Jangan takut gagal, karena kegagalan ${ambil(w.kerja)}.`,
+    w => `Masa depan bukan hanya tentang mimpi, tetapi juga ${ambil(w.subjek)}.`,
+    w => `Seseorang akan bertumbuh ketika ia memahami bahwa ${ambil(w.penutup)}`,
+    w => `Kesuksesan membutuhkan lebih dari sekadar niat: ${ambil(w.subjek)} juga penting.`,
+    w => `Hargai prosesmu sendiri, karena ${ambil(w.penutup)}`
+  ]
+};
+
+function ambil(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function kapital(text) {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+let sebelumnya = "";
+let jumlah = 0;
+
+function buatKalimat() {
+  const mode = $("mode").value;
+  const kategori = mode === "random"
+    ? ambil(["galau", "bijak"])
+    : mode;
+
+  let hasil = "";
+  let percobaan = 0;
+
+  do {
+    hasil = ambil(pola[kategori])(words[kategori]);
+    percobaan++;
+  } while (hasil === sebelumnya && percobaan < 15);
+
+  sebelumnya = hasil;
+  jumlah++;
+
+  $("quote").textContent = hasil;
+  $("label").textContent =
+    kategori === "galau" ? "🥀 KATA-KATA GALAU" : "✦ KATA-KATA BIJAK";
+}
+
+$("generate").addEventListener("click", buatKalimat);
+$("next").addEventListener("click", buatKalimat);
+
+$("copy").addEventListener("click", async () => {
+  const text = $("quote").textContent;
+
+  try {
+    await navigator.clipboard.writeText(text);
+    $("copy").textContent = "Tersalin ✓";
+  } catch {
+    const area = document.createElement("textarea");
+    area.value = text;
+    document.body.appendChild(area);
+    area.select();
+    document.execCommand("copy");
+    area.remove();
+    $("copy").textContent = "Tersalin ✓";
+  }
+
+  setTimeout(() => {
+    $("copy").textContent = "Salin kalimat";
+  }, 1600);
+});
+
+buatKalimat();
+</script>
+</body>
+</html>
