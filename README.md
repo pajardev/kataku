@@ -1,0 +1,2 @@
+# kataku
+Kata Kata Galau
